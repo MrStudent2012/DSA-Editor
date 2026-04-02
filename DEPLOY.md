@@ -17,6 +17,8 @@ git push -u origin main
 5. Click "Create Web Service"
 6. Wait 2-3 minutes → Get URL!
 
+If deploy logs show `Running 'gunicorn app:app'`, open Render service settings and clear any manually-set Start Command override, then redeploy. This project expects the render.yaml command.
+
 ### Step 3: Use with Friends
 - Share URL with friends
 - Everyone joins same session ID
