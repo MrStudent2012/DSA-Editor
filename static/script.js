@@ -8,25 +8,38 @@ let socketReady = false;
 // Simple Socket.IO initialization like the working example
 console.log('🌐 Initializing...');
 
-// Wait for window to load before initializing socket
-window.addEventListener('load', function() {
-    // Give a moment for Socket.IO script to execute
-    setTimeout(function() {
-        if (typeof io !== 'undefined') {
-            socket = io();
-            setupSocketListeners();
-            console.log('✅ Socket.IO initialized');
-        } else {
-            console.error('❌ Socket.IO not loaded');
-            updateStatus('❌ Socket.IO failed to load', 'red');
-        }
-    }, 500);
-});
+function initializeSocket(callback, attempt = 0) {
+    if (typeof io !== 'undefined') {
+        socket = io();
+        setupSocketListeners();
+        console.log('✅ Socket.IO initialized');
+        callback();
+        return;
+    }
+
+    if (attempt < 20) {
+        setTimeout(function() {
+            initializeSocket(callback, attempt + 1);
+        }, 200);
+        return;
+    }
+
+    console.error('❌ Socket.IO not loaded');
+    updateStatus('❌ Socket.IO failed to load', 'red');
+    callback();
+}
 
 function setupSocketListeners() {
     socket.on('connect', () => {
         socketReady = true;
         console.log('✅ Connected to server!');
+
+        if (currentSessionId) {
+            updateStatus(`🔄 Rejoined: ${currentSessionId}`, 'green');
+            socket.emit('join', { session_id: currentSessionId });
+            return;
+        }
+
         updateStatus('✅ Connected - Enter session ID', 'green');
     });
 
@@ -38,7 +51,7 @@ function setupSocketListeners() {
     socket.on('disconnect', () => {
         socketReady = false;
         console.log('❌ Disconnected');
-        updateStatus('❌ Disconnected', 'red');
+        updateStatus('⚠️ Reconnecting...', 'orange');
     });
 
     socket.on('load_code', (data) => {
@@ -74,10 +87,12 @@ function setupSocketListeners() {
     });
 }
 
-// Initialize Monaco Editor
-if (!window.editorInitialized) {
+function initializeMonaco() {
+    if (window.editorInitialized) {
+        return;
+    }
+
     window.editorInitialized = true;
-    
     require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
 
     require(['vs/editor/editor.main'], () => {
@@ -101,7 +116,7 @@ if (!window.editorInitialized) {
                     });
                 }
             });
-            
+
             editorReady = true;
             console.log('✅ Editor initialized');
         } catch (e) {
@@ -110,6 +125,10 @@ if (!window.editorInitialized) {
         }
     });
 }
+
+window.addEventListener('load', function() {
+    initializeSocket(initializeMonaco);
+});
 
 function updateStatus(msg, color = 'yellow') {
     const status = document.getElementById('status');
