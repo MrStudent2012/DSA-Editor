@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DSA Collaborative Editor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
@@ -13,9 +13,9 @@
             <h1>🚀 DSA Collaborative Editor</h1>
             <div class="controls">
                 <input type="text" id="sessionId" placeholder="Session ID" value="session-123">
-                <button onclick="joinSession()">Join</button>
-                <button onclick="runCode()">▶ Run</button>
-                <span id="status">Not connected</span>
+                <button onclick="joinSession()">👥 Join</button>
+                <button onclick="runCode()">▶ Run (Ctrl+Enter)</button>
+                <span id="status">Loading...</span>
             </div>
         </header>
         
@@ -27,6 +27,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.js"></script>
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
-    <script src="script.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
