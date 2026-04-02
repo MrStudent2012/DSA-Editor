@@ -5,30 +5,44 @@ let isUpdating = false;
 let editorReady = false;
 let socketReady = false;
 
-// Wait for Socket.IO to load
-function initSocket() {
-    if (typeof io === 'undefined') {
-        console.log('⏳ Waiting for Socket.IO...');
-        setTimeout(initSocket, 100);
-        return;
-    }
-    
-    socket = io();
-    socketReady = true;
-    console.log('✅ Socket.IO initialized');
-    
+// Simple Socket.IO initialization like the working example
+console.log('🌐 Initializing...');
+
+// Wait for window to load before initializing socket
+window.addEventListener('load', function() {
+    // Give a moment for Socket.IO script to execute
+    setTimeout(function() {
+        if (typeof io !== 'undefined') {
+            socket = io();
+            setupSocketListeners();
+            console.log('✅ Socket.IO initialized');
+        } else {
+            console.error('❌ Socket.IO not loaded');
+            updateStatus('❌ Socket.IO failed to load', 'red');
+        }
+    }, 500);
+});
+
+function setupSocketListeners() {
     socket.on('connect', () => {
-        console.log('✅ Connected to server');
-        updateStatus('Ready - Enter session ID', 'green');
+        socketReady = true;
+        console.log('✅ Connected to server!');
+        updateStatus('✅ Connected - Enter session ID', 'green');
+    });
+
+    socket.on('connect_error', (err) => {
+        console.error('❌ Connection error:', err.message);
+        updateStatus('❌ Cannot connect', 'red');
     });
 
     socket.on('disconnect', () => {
+        socketReady = false;
         console.log('❌ Disconnected');
-        updateStatus('Disconnected', 'red');
+        updateStatus('❌ Disconnected', 'red');
     });
 
     socket.on('load_code', (data) => {
-        console.log('📝 Code loaded');
+        console.log('📝 Loading code');
         if (editor && editorReady) {
             isUpdating = true;
             editor.setValue(data.code);
@@ -37,7 +51,7 @@ function initSocket() {
     });
 
     socket.on('code_update', (data) => {
-        console.log('🔄 Code updated');
+        console.log('🔄 Code update');
         if (editor && editorReady) {
             isUpdating = true;
             const pos = editor.getPosition();
@@ -48,20 +62,17 @@ function initSocket() {
     });
 
     socket.on('output', (data) => {
-        console.log('📤 Output:', data.result);
+        console.log('📤 Output received');
         document.getElementById('output').textContent = data.result;
     });
 
     socket.on('user_count', (data) => {
         if (currentSessionId) {
             updateStatus(`✅ Session: ${currentSessionId} (${data.count} user${data.count !== 1 ? 's' : ''})`, 'green');
-            console.log(`👥 User count: ${data.count}`);
+            console.log(`👥 ${data.count} user(s)`);
         }
     });
 }
-
-// Initialize Socket.IO when page loads
-window.addEventListener('DOMContentLoaded', initSocket);
 
 // Initialize Monaco Editor
 if (!window.editorInitialized) {
@@ -99,7 +110,6 @@ if (!window.editorInitialized) {
         }
     });
 }
-
 
 function updateStatus(msg, color = 'yellow') {
     const status = document.getElementById('status');
