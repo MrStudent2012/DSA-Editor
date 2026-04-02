@@ -4,6 +4,8 @@ let currentSessionId = null;
 let isUpdating = false;
 let editorReady = false;
 let socketReady = false;
+let debounceTimer = null;
+let lastSentCode = '';
 
 // Simple Socket.IO initialization like the working example
 console.log('🌐 Initializing...');
@@ -65,12 +67,19 @@ function setupSocketListeners() {
 
     socket.on('code_update', (data) => {
         console.log('🔄 Code update');
-        if (editor && editorReady) {
-            isUpdating = true;
-            const pos = editor.getPosition();
-            editor.setValue(data.code);
-            editor.setPosition(pos);
-            isUpdating = false;
+        if (editor && editorReady && !isUpdating) {
+            const currentCode = editor.getValue();
+            // Only update if code actually changed
+            if (currentCode !== data.code) {
+                isUpdating = true;
+                const position = editor.getPosition();
+                const selection = editor.getSelection();
+                editor.setValue(data.code);
+                // Restore cursor position
+                if (position) editor.setPosition(position);
+                if (selection) editor.setSelection(selection);
+                isUpdating = false;
+            }
         }
     });
 
@@ -110,10 +119,20 @@ function initializeMonaco() {
 
             editor.onDidChangeModelContent(() => {
                 if (!isUpdating && currentSessionId && socket && socketReady) {
-                    socket.emit('code_change', {
-                        session_id: currentSessionId,
-                        code: editor.getValue()
-                    });
+                    const currentCode = editor.getValue();
+                    
+                    // Debounce: wait 200ms after user stops typing
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        // Only send if code actually changed
+                        if (currentCode !== lastSentCode) {
+                            lastSentCode = currentCode;
+                            socket.emit('code_change', {
+                                session_id: currentSessionId,
+                                code: currentCode
+                            });
+                        }
+                    }, 200);
                 }
             });
 
