@@ -1,0 +1,96 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #1e1e1e;
+    color: #fff;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header {
+    background: #252526;
+    padding: 15px 20px;
+    border-bottom: 1px solid #3e3e42;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h1 {
+    font-size: 18px;
+    margin: 0;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+input {
+    padding: 6px 10px;
+    background: #3c3c3c;
+    color: #fff;
+    border: 1px solid #555;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+button {
+    padding: 6px 14px;
+    background: #0e639c;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+button:hover {
+    background: #1177bb;
+}
+
+#status {
+    font-size: 12px;
+    color: #999;
+}
+
+main {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+#editor {
+    flex: 1;
+    min-height: 0;
+}
+
+#output {
+    width: 300px;
+    background: #1e1e1e;
+    border-left: 1px solid #3e3e42;
+    padding: 15px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: #d4d4d4;
+}
+
+#output:empty::before {
+    content: 'Output will appear here...';
+    color: #666;
+}
